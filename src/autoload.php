@@ -18,7 +18,7 @@
 spl_autoload_register(
     function ( $className ) {
         if ( $className === 'O2System\Libraries\CURL' ) {
-            require __DIR__ . '/Curl.php';
+            require __DIR__ . DIRECTORY_SEPARATOR . 'Curl.php';
         } elseif ( strpos( $className, 'O2System\Libraries\CURL\\' ) === false ) {
             return;
         }
