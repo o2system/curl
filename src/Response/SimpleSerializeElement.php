@@ -10,31 +10,31 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Libraries\CURL\Handlers;
+namespace O2System\Curl\Response;
 
 // ------------------------------------------------------------------------
 
-use O2System\Core\SPL\ArrayIterator;
-use O2System\Libraries\CURL;
+use O2System\Spl\Datastructures\SplArrayObject;
 
 /**
- * Class Requests
+ * Class SimpleSerializeElement
  *
- * @package O2System\Libraries\CURL\Handlers
+ * @package O2System\Curl\Response
  */
-class Requests extends ArrayIterator
+class SimpleSerializeElement extends SplArrayObject
 {
     /**
-     * Requests Offset Set
+     * SimpleSerializeElement::__construct
      *
-     * @param string $index
-     *
-     * @param string $value
+     * @param array $elements
      */
-    public function offsetSet ( $index, $value )
+    public function __construct( array $elements = [] )
     {
-        if ( $value instanceof CURL ) {
-            parent::offsetSet( $index, $value );
+        foreach ( $elements as $key => $value ) {
+            $elements[ camelcase( $key ) ] = $value;
+            unset( $elements[ $key ] );
         }
+
+        parent::__construct( $elements );
     }
 }

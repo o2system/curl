@@ -10,7 +10,7 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Libraries\CURL\Datastructures;
+namespace O2System\Curl\Response;
 
 // ------------------------------------------------------------------------
 
@@ -19,23 +19,25 @@ use O2System\Spl\Datastructures\SplArrayObject;
 /**
  * Class Info
  *
- * @package O2System\Libraries\CURL\Datastructures
+ * @package O2System\Curl\Response
  */
 class Info extends SplArrayObject
 {
     /**
-     * Info constructor.
+     * Info::__construct
      *
-     * @param array $info
+     * @param array $info Array of curl info.
      */
-    public function __construct ( array $info = [ ] )
+    public function __construct( array $info )
     {
-        if ( count( $info ) > 0 ) {
-            foreach ( $info as $offset => $value ) {
-                $this->offsetSet( $offset, $value );
+        foreach ( $info as $key => $value ) {
+
+            if ( strpos( $key, '_' ) !== false ) {
+                $info[ camelcase( $key ) ] = $value;
+                unset( $info[ $key ] );
             }
         }
-    }
 
-    // ------------------------------------------------------------------------
+        parent::__construct( $info );
+    }
 }

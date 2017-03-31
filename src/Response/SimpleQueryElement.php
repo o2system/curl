@@ -10,32 +10,31 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Libraries\CURL\Datastructures;
+namespace O2System\Curl\Response;
 
 // ------------------------------------------------------------------------
 
 use O2System\Spl\Datastructures\SplArrayObject;
 
 /**
- * Class Headers
+ * Class SimpleQueryElement
  *
- * @package O2System\Libraries\CURL\Datastructures
+ * @package O2System\Curl\Response
  */
-class Headers extends SplArrayObject
+class SimpleQueryElement extends SplArrayObject
 {
     /**
-     * Headers constructor.
+     * SimpleQueryElement::__construct
      *
-     * @param array $headers
+     * @param array $elements
      */
-    public function __construct ( array $headers = [ ] )
+    public function __construct( array $elements = [] )
     {
-        if ( count( $headers ) > 0 ) {
-            foreach ( $headers as $offset => $value ) {
-                $this->offsetSet( $offset, $value );
-            }
+        foreach ( $elements as $key => $value ) {
+            $elements[ camelcase( $key ) ] = $value;
+            unset( $elements[ $key ] );
         }
-    }
 
-    // ------------------------------------------------------------------------
+        parent::__construct( $elements );
+    }
 }

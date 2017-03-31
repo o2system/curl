@@ -17,9 +17,9 @@
  */
 spl_autoload_register(
     function ( $className ) {
-        if ( $className === 'O2System\Libraries\CURL' ) {
+        if ( $className === 'O2System\Curl' ) {
             require __DIR__ . DIRECTORY_SEPARATOR . 'Curl.php';
-        } elseif ( strpos( $className, 'O2System\Libraries\CURL\\' ) === false ) {
+        } elseif ( strpos( $className, 'O2System\Curl\\' ) === false ) {
             return;
         }
 
@@ -35,7 +35,7 @@ spl_autoload_register(
         $filePath .= str_replace( '_', DIRECTORY_SEPARATOR, $className ) . '.php';
 
         // Fixed Path
-        $filePath = str_replace( 'O2System\Libraries\CURL\\', __DIR__ . DIRECTORY_SEPARATOR, $filePath );
+        $filePath = str_replace( 'O2System\Curl\\', __DIR__ . DIRECTORY_SEPARATOR, $filePath );
         $filePath = str_replace( [ '\\', '/' ], DIRECTORY_SEPARATOR, $filePath );
 
         if ( file_exists( $filePath ) ) {

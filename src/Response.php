@@ -12,328 +12,266 @@
 
 namespace O2System\Curl;
 
+// ------------------------------------------------------------------------
 
-use O2System\Psr\Http\Message\RequestInterface;
-use O2System\Psr\Http\Message\ResponseInterface;
-use O2System\Psr\Http\Message\StreamInterface;
+use O2System\Curl\Response\Error;
+use O2System\Curl\Response\Headers;
+use O2System\Curl\Response\Info;
+use O2System\Curl\Response\SimpleJSONElement;
+use O2System\Curl\Response\SimpleQueryElement;
+use O2System\Curl\Response\SimpleSerializeElement;
+use O2System\Curl\Response\SimpleXMLElement;
 
-class Response implements ResponseInterface
+/**
+ * Class Response
+ *
+ * @package O2System\Curl
+ */
+class Response
 {
     /**
-     * Request Resource
+     * Response::$string
      *
-     * @var RequestInterface
+     * Raw string response.
+     *
+     * @var string
      */
-    protected $request;
+    protected $string;
 
-    public function __construct ( Request $request )
+    /**
+     * Response::$info
+     *
+     * Response info object.
+     *
+     * @var Info
+     */
+    protected $info;
+
+    /**
+     * Response::$error
+     *
+     * Response error object.
+     *
+     * @var Error
+     */
+    protected $error;
+
+    /**
+     * Response::$headers
+     *
+     * Response headers object.
+     *
+     * @var Headers
+     */
+    protected $headers;
+
+    /**
+     * Response::$body
+     *
+     * Response body.
+     *
+     * @var SimpleJSONElement|SimpleQueryElement|SimpleXMLElement|SimpleSerializeElement|\DOMDocument|string
+     */
+    protected $body;
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Response::__construct
+     *
+     * @param resource $curlHandle Curl handle resource.
+     */
+    public function __construct( $curlHandle )
     {
-        $this->request =& $request;
-
-        $info = curl_getinfo( $this->request->handle );
-
-        // Execute the request
-        if ( false !== ( $response = curl_exec( $this->request->handle ) ) ) {
-
-        } else {
-
+        if ( ( $errorNumber = curl_errno( $curlHandle ) ) != 0 ) {
+            $this->error = new Error( [
+                'code'    => curl_errno( $curlHandle ),
+                'message' => curl_error( $curlHandle ),
+            ] );
         }
     }
 
-    /**
-     * MessageInterface::getProtocolVersion
-     *
-     * Retrieves the HTTP protocol version as a string.
-     *
-     * The string MUST contain only the HTTP version number (e.g., "1.1", "1.0").
-     *
-     * @return string HTTP protocol version.
-     */
-    public function getProtocolVersion ()
-    {
-
-    }
+    // ------------------------------------------------------------------------
 
     /**
-     * MessageInterface::withProtocolVersion
+     * Response::setContent
      *
-     * Return an instance with the specified HTTP protocol version.
+     * Sets response content manualy.
      *
-     * The version string MUST contain only the HTTP version number (e.g.,
-     * "1.1", "1.0").
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new protocol version.
-     *
-     * @param string $version HTTP protocol version
+     * @param string $content
      *
      * @return static
      */
-    public function withProtocolVersion ( $version )
+    public function setContent( $content )
     {
-        // TODO: Implement withProtocolVersion() method.
+        $this->string = $content;
+        $this->fetchHeader( $content );
+        $this->fetchBody( $content );
+
+        return $this;
     }
 
+    // ------------------------------------------------------------------------
+
     /**
-     * MessageInterface::getHeaders
+     * Response::fetchHeader
      *
-     * Retrieves all message header values.
+     * Fetch response header.
      *
-     * The keys represent the header name as it will be sent over the wire, and
-     * each value is an array of strings associated with the header.
-     *
-     *     // Represent the headers as a string
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         echo $name . ': ' . implode(', ', $values);
-     *     }
-     *
-     *     // Emit headers iteratively:
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         foreach ($values as $value) {
-     *             header(sprintf('%s: %s', $name, $value), false);
-     *         }
-     *     }
-     *
-     * While header names are not case-sensitive, getHeaders() will preserve the
-     * exact case in which headers were originally specified.
-     *
-     * @return string[][] Returns an associative array of the message's headers.
-     *     Each key MUST be a header name, and each value MUST be an array of
-     *     strings for that header.
+     * @param string $response
      */
-    public function getHeaders ()
+    protected function fetchHeader( $response )
     {
-        // TODO: Implement getHeaders() method.
+        $headers = [];
+        $headerSize = 0;
+        $headerParts = explode( PHP_EOL, $response );
+
+        foreach ( $headerParts as $headerString ) {
+
+            $headerSize += strlen( $headerString );
+
+            $headerString = trim( $headerString );
+            if ( empty( $headerString ) ) {
+                break;
+            }
+
+            if ( strpos( $headerString, ':' ) !== false ) {
+                $headerSize += strlen( PHP_EOL );
+                $headerString = str_replace( '"', '', $headerString );
+                $headerStringParts = explode( ':', $headerString );
+                $headerStringParts = array_map( 'trim', $headerStringParts );
+
+                $headers[ $headerStringParts[ 0 ] ] = $headerStringParts[ 1 ];
+            } elseif ( preg_match( "/(HTTP\/[0-9].[0-9])\s([0-9]+)\s([a-zA-Z]+)/", $headerString, $matches ) ) {
+                $headerSize += strlen( PHP_EOL );
+
+                $this->info->httpVersion = $matches[ 1 ];
+                $this->info->httpCode = $matches[ 2 ];
+                $this->info->httpCodeDescription = $matches[ 3 ];
+            }
+        }
+
+        $this->headers = new Headers( $headers );
+
+        // Update info
+        if ( $this->headers->offsetExists( 'contentType' ) ) {
+            $this->info->contentType = $this->headers->offsetGet( 'contentType' );
+        }
+
+        $this->info->headerSize = $headerSize;
     }
 
+    // ------------------------------------------------------------------------
+
     /**
-     * MessageInterface::hasHeader
+     * Response::fetchBody
      *
-     * Checks if a header exists by the given case-insensitive name.
+     * Fetch response body.
      *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return bool Returns true if any header names match the given header
-     *     name using a case-insensitive string comparison. Returns false if
-     *     no matching header name is found in the message.
+     * @param string $response
      */
-    public function hasHeader ( $name )
+    protected function fetchBody( $response )
     {
-        // TODO: Implement hasHeader() method.
+        $body = substr( $response, $this->info->headerSize );
+        $body = trim( $body );
+        $jsonBody = json_decode( $body, true );
+
+        if ( is_array( $jsonBody ) AND json_last_error() === JSON_ERROR_NONE ) {
+            $this->body = new SimpleJSONElement( $jsonBody );
+        } elseif ( strpos( $body, '?xml' ) !== false ) {
+            $this->body = new SimpleXMLElement( $body );
+        } elseif ( strpos( $body, '!DOCTYPE' ) !== false or strpos( $body, '!doctype' ) !== false ) {
+            $DomDocument = new \DOMDocument();
+            $DomDocument->loadHTML( $body );
+            $this->body = $DomDocument;
+        } elseif ( false !== ( $serializeArray = unserialize( $body ) ) ) {
+            $this->body = new SimpleSerializeElement( $serializeArray );
+        } else {
+            parse_str( $body, $queryString );
+
+            if ( isset( $queryString[ 0 ] ) ) {
+                $this->body = $body;
+            } else {
+                $this->body = new SimpleQueryElement( $queryString );
+            }
+        }
     }
 
+    // ------------------------------------------------------------------------
+
     /**
-     * MessageInterface::getHeader
+     * Response::getInfo
      *
-     * Retrieves a message header value by the given case-insensitive name.
+     * Gets response info object.
      *
-     * This method returns an array of all the header values of the given
-     * case-insensitive header name.
-     *
-     * If the header does not appear in the message, this method MUST return an
-     * empty array.
-     *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return string[] An array of string values as provided for the given
-     *    header. If the header does not appear in the message, this method MUST
-     *    return an empty array.
+     * @return \O2System\Curl\Response\Info
      */
-    public function getHeader ( $name )
+    public function getInfo()
     {
-        // TODO: Implement getHeader() method.
+        return $this->info;
     }
 
-    /**
-     * MessageInterface::getHeaderLine
-     *
-     * Retrieves a comma-separated string of the values for a single header.
-     *
-     * This method returns all of the header values of the given
-     * case-insensitive header name as a string concatenated together using
-     * a comma.
-     *
-     * NOTE: Not all header values may be appropriately represented using
-     * comma concatenation. For such headers, use getHeader() instead
-     * and supply your own delimiter when concatenating.
-     *
-     * If the header does not appear in the message, this method MUST return
-     * an empty string.
-     *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return string A string of values as provided for the given header
-     *    concatenated together using a comma. If the header does not appear in
-     *    the message, this method MUST return an empty string.
-     */
-    public function getHeaderLine ( $name )
-    {
-        // TODO: Implement getHeaderLine() method.
-    }
+    // ------------------------------------------------------------------------
 
     /**
-     * MessageInterface::withHeader
+     * Response::setInfo
      *
-     * Return an instance with the provided value replacing the specified header.
+     * Sets response info manualy.
      *
-     * While header names are case-insensitive, the casing of the header will
-     * be preserved by this function, and returned from getHeaders().
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new and/or updated header and value.
-     *
-     * @param string          $name  Case-insensitive header field name.
-     * @param string|string[] $value Header value(s).
-     *
-     * @return static
-     * @throws \InvalidArgumentException for invalid header names or values.
-     */
-    public function withHeader ( $name, $value )
-    {
-        // TODO: Implement withHeader() method.
-    }
-
-    /**
-     * MessageInterface::withAddedHeader
-     *
-     * Return an instance with the specified header appended with the given value.
-     *
-     * Existing values for the specified header will be maintained. The new
-     * value(s) will be appended to the existing list. If the header did not
-     * exist previously, it will be added.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new header and/or value.
-     *
-     * @param string          $name  Case-insensitive header field name to add.
-     * @param string|string[] $value Header value(s).
-     *
-     * @return static
-     * @throws \InvalidArgumentException for invalid header names.
-     * @throws \InvalidArgumentException for invalid header values.
-     */
-    public function withAddedHeader ( $name, $value )
-    {
-        // TODO: Implement withAddedHeader() method.
-    }
-
-    /**
-     * MessageInterface::withoutHeader
-     *
-     * Return an instance without the specified header.
-     *
-     * Header resolution MUST be done without case-sensitivity.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that removes
-     * the named header.
-     *
-     * @param string $name Case-insensitive header field name to remove.
+     * @param array $info
      *
      * @return static
      */
-    public function withoutHeader ( $name )
+    public function setInfo( array $info )
     {
-        // TODO: Implement withoutHeader() method.
+        $this->info = new Info( $info );
+
+        return $this;
     }
 
-    /**
-     * MessageInterface::getBody
-     *
-     * Gets the body of the message.
-     *
-     * @return StreamInterface Returns the body as a stream.
-     */
-    public function getBody ()
-    {
-        // TODO: Implement getBody() method.
-    }
+    // ------------------------------------------------------------------------
 
     /**
-     * MessageInterface::withBody
+     * Response::getHeaders
      *
-     * Return an instance with the specified message body.
+     * Gets response headers object.
      *
-     * The body MUST be a StreamInterface object.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return a new instance that has the
-     * new body stream.
-     *
-     * @param StreamInterface $body Body.
-     *
-     * @return static
-     * @throws \InvalidArgumentException When the body is not valid.
+     * @return \O2System\Curl\Response\Headers
      */
-    public function withBody ( StreamInterface $body )
+    public function getHeaders()
     {
-        // TODO: Implement withBody() method.
+        return $this->headers;
     }
 
-    /**
-     * ResponseInterface::getStatusCode
-     *
-     * Gets the response status code.
-     *
-     * The status code is a 3-digit integer result code of the server's attempt
-     * to understand and satisfy the request.
-     *
-     * @return int Status code.
-     */
-    public function getStatusCode ()
-    {
-        // TODO: Implement getStatusCode() method.
-    }
+    // ------------------------------------------------------------------------
 
     /**
-     * ResponseInterface::withStatus
+     * Response::getBody
      *
-     * Return an instance with the specified status code and, optionally, reason phrase.
+     * Gets response body.
      *
-     * If no reason phrase is specified, implementations MAY choose to default
-     * to the RFC 7231 or IANA recommended reason phrase for the response's
-     * status code.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * updated status and reason phrase.
-     *
-     * @see http://tools.ietf.org/html/rfc7231#section-6
-     * @see http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-     *
-     * @param int    $code         The 3-digit integer result code to set.
-     * @param string $reasonPhrase The reason phrase to use with the
-     *                             provided status code; if none is provided, implementations MAY
-     *                             use the defaults as suggested in the HTTP specification.
-     *
-     * @return static
-     * @throws \InvalidArgumentException For invalid status code arguments.
+     * @return SimpleJSONElement|SimpleQueryElement|SimpleXMLElement|SimpleSerializeElement|\DOMDocument|string
      */
-    public function withStatus ( $code, $reasonPhrase = '' )
+    public function getBody()
     {
-        // TODO: Implement withStatus() method.
+        return $this->body;
     }
 
+    // ------------------------------------------------------------------------
+
     /**
-     * ResponseInterface::getReasonPhrase
+     * Response::getError
      *
-     * Gets the response reason phrase associated with the status code.
+     * Gets response error.
      *
-     * Because a reason phrase is not a required element in a response
-     * status line, the reason phrase value MAY be empty. Implementations MAY
-     * choose to return the default RFC 7231 recommended reason phrase (or those
-     * listed in the IANA HTTP Status Code Registries) for the response's
-     * status code.
-     *
-     * @see http://tools.ietf.org/html/rfc7231#section-6
-     * @see http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-     * @return string Reason phrase; must return an empty string if none present.
+     * @return Error|false
      */
-    public function getReasonPhrase ()
+    public function getError()
     {
-        // TODO: Implement getReasonPhrase() method.
+        if ( $this->error instanceof Error ) {
+            return $this->error;
+        }
+
+        return false;
     }
 }

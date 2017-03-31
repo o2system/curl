@@ -10,32 +10,34 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Libraries\CURL\Datastructures;
+namespace O2System\Curl\Response;
 
 // ------------------------------------------------------------------------
 
 use O2System\Spl\Datastructures\SplArrayObject;
 
 /**
- * Class SimpleQueryElement
+ * Class Info
  *
- * @package O2System\Libraries\CURL\Datastructures
+ * @package O2System\Curl\Response
  */
-class SimpleQueryElement extends SplArrayObject
+class Error extends SplArrayObject
 {
     /**
-     * SimpleJSONElement constructor.
+     * Info::__construct
      *
-     * @param array $elements
+     * @param array $info Array of curl info.
      */
-    public function __construct ( array $elements = [ ] )
+    public function __construct( array $info )
     {
-        if ( count( $elements ) > 0 ) {
-            foreach ( $elements as $offset => $value ) {
-                $this->offsetSet( $offset, $value );
+        foreach ( $info as $key => $value ) {
+
+            if ( strpos( $key, '_' ) !== false ) {
+                $info[ camelcase( $key ) ] = $value;
+                unset( $info[ $key ] );
             }
         }
-    }
 
-    // ------------------------------------------------------------------------
+        parent::__construct( $info );
+    }
 }

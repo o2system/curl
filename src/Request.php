@@ -14,115 +14,114 @@ namespace O2System\Curl;
 
 // ------------------------------------------------------------------------
 
-use O2System\Core\Http\Message\Stream;
-use O2System\Core\Http\Uri;
-use O2System\Psr\Http\Message\RequestInterface;
-use O2System\Psr\Http\Message\StreamInterface;
+use O2System\Kernel\Http\Message\Uri;
 use O2System\Psr\Http\Message\UriInterface;
+use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 
 /**
  * Class Request
  *
  * @package O2System\Curl
  */
-class Request implements RequestInterface
+class Request
 {
     /**
-     * Request Method
+     * Request::$curlAutoClose
      *
-     * @var string
-     */
-    protected $method = 'GET';
-
-    /**
-     * Request HTTP Protocol Version
+     * Flag for automatic close the connection when it has finished processing
+     * and not be pooled for reuse.
      *
-     * @var int
+     * @var bool
      */
-    protected $protocolVersion = CURL_HTTP_VERSION_1_1;
-
+    public $curlAutoClose = true;
     /**
-     * Request Headers
+     * Request::$uri
      *
-     * @var array
-     */
-    protected $headers = [ ];
-
-    /**
-     * Request Body
-     *
-     * @var Stream
-     */
-    protected $body;
-
-    /**
-     * Request Uri
+     * Request uri instance.
      *
      * @var Uri
      */
     protected $uri;
+    /**
+     * Request::$curl
+     *
+     * Request Curl handle resource.
+     *
+     * @var resource
+     */
+    protected $curlHandle;
+    /**
+     * Request::$curlOptions
+     *
+     * Request Curl handle options.
+     *
+     * @var array
+     */
+    protected $curlOptions;
+    /**
+     * Request::$curlHeaders
+     *
+     * Request Curl handle headers.
+     *
+     * @var array
+     */
+    protected $curlHeaders;
+
+    // ------------------------------------------------------------------------
 
     /**
-     * Request Options
+     * Request::__construct
      *
-     * @access  protected
-     * @type    array
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
      */
-    protected $options = [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HEADER         => true,
-    ];
-
-    /**
-     * Request::getProtocolVersion
-     *
-     * Retrieves the HTTP protocol version as a string.
-     *
-     * The string MUST contain only the HTTP version number (e.g., "1.1", "1.0").
-     *
-     * @return string HTTP protocol version.
-     */
-    public function getProtocolVersion ()
+    public function __construct()
     {
-        $httpVersions = [
-            CURL_HTTP_VERSION_NONE => '1.0',
-            CURL_HTTP_VERSION_1_0  => '1.0',
-            CURL_HTTP_VERSION_1_1  => '1.1',
-        ];
+        if ( ! function_exists( 'curl_init' ) ) {
+            throw new BadPhpExtensionCallException( 'E_CURL_NOT_LOADED' );
+        }
 
-        return $httpVersions[ $this->protocolVersion ];
+        $this->curlHandle = curl_init();
+
+        // default, TRUE to return the transfer as a string of the return value of curl_exec() instead of outputting it out directly.
+        $this->curlOptions[ CURLOPT_RETURNTRANSFER ] = true;
+
+        // default, TRUE to output verbose information.
+        $this->curlOptions[ CURLOPT_VERBOSE ] = true;
+
+        // default, TRUE to include the header in the output.
+        $this->curlOptions[ CURLOPT_HEADER ] = true;
+
+        // default, lets CURL decide which version to use.
+        $this->curlOptions[ CURLOPT_HTTP_VERSION ] = CURL_HTTP_VERSION_NONE;
+
+        // default, http user agent using o2system curl.
+        $this->curlOptions[ CURLOPT_USERAGENT ] = 'Curl/1.0 (O2System PHP Framework 5.0.0)';
+
+        // default, TRUE to automatically set the Referer: field in requests where it follows a Location: redirect.
+        $this->curlOptions[ CURLOPT_AUTOREFERER ] = true;
+
+        // default, FALSE to stop cURL from verifying the peer's certificate.
+        $this->curlOptions[ CURLOPT_SSL_VERIFYPEER ] = false;
+
+        // default, 0 to not check the names.
+        $this->curlOptions[ CURLOPT_SSL_VERIFYHOST ] = 0;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Request::withProtocolVersion
+     * Request::setOptions
      *
-     * Return an instance with the specified HTTP protocol version.
+     * Sets curl options.
      *
-     * The version string MUST contain only the HTTP version number (e.g.,
-     * "1.1", "1.0").
+     * @see http://php.net/manual/en/function.curl-setopt.php
      *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new protocol version.
-     *
-     * @param string $version HTTP protocol version
-     *
-     * @return static
+     * @param array $options
      */
-    public function withProtocolVersion ( $version )
+    public function setOptions( array $options )
     {
-        $httpVersions = [
-            CURL_HTTP_VERSION_NONE => '1.0',
-            CURL_HTTP_VERSION_1_0  => '1.0',
-            CURL_HTTP_VERSION_1_1  => '1.1',
-        ];
-
-        if ( false !== ( $protocolVersion = array_search( $version, $httpVersions ) ) ) {
-            $this->protocolVersion = $protocolVersion;
-        } elseif ( array_key_exists( $version, $httpVersions ) ) {
-            $this->protocolVersion = $version;
+        foreach ( $options as $option => $value ) {
+            $this->setOption( $option, $value );
         }
 
         return $this;
@@ -131,173 +130,385 @@ class Request implements RequestInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Request::getHeaders
+     * Request::setOption
      *
-     * Retrieves all message header values.
+     * Sets custom curl option.
      *
-     * The keys represent the header name as it will be sent over the wire, and
-     * each value is an array of strings associated with the header.
+     * @see http://php.net/manual/en/function.curl-setopt.php
      *
-     *     // Represent the headers as a string
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         echo $name . ': ' . implode(', ', $values);
-     *     }
+     * @param int   $option The curl option number.
+     * @param mixed $value  The value of curl option.
      *
-     *     // Emit headers iteratively:
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         foreach ($values as $value) {
-     *             header(sprintf('%s: %s', $name, $value), false);
-     *         }
-     *     }
-     *
-     * While header names are not case-sensitive, getHeaders() will preserve the
-     * exact case in which headers were originally specified.
-     *
-     * @return string[][] Returns an associative array of the message's headers.
-     *     Each key MUST be a header name, and each value MUST be an array of
-     *     strings for that header.
+     * @return $this
      */
-    public function getHeaders ()
+    public function setOption( $option, $value )
     {
-        return $this->headers;
+        $this->curlOptions[ $option ] = $value;
+
+        return $this;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Request::hasHeader
+     * Request::setUri
      *
-     * Checks if a header exists by the given case-insensitive name.
-     *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return bool Returns true if any header names match the given header
-     *     name using a case-insensitive string comparison. Returns false if
-     *     no matching header name is found in the message.
-     */
-    public function hasHeader ( $name )
-    {
-        return (bool) isset( $this->headers[ $name ] );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Request::getHeaderLine
-     *
-     * Retrieves a comma-separated string of the values for a single header.
-     *
-     * This method returns all of the header values of the given
-     * case-insensitive header name as a string concatenated together using
-     * a comma.
-     *
-     * NOTE: Not all header values may be appropriately represented using
-     * comma concatenation. For such headers, use getHeader() instead
-     * and supply your own delimiter when concatenating.
-     *
-     * If the header does not appear in the message, this method MUST return
-     * an empty string.
-     *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return string A string of values as provided for the given header
-     *    concatenated together using a comma. If the header does not appear in
-     *    the message, this method MUST return an empty string.
-     */
-    public function getHeaderLine ( $name )
-    {
-        if ( isset( $this->headers[ $name ] ) ) {
-            $this->headers[ $name ];
-        }
-
-        return '';
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Request::withAddedHeader
-     *
-     * Return an instance with the specified header appended with the given value.
-     *
-     * Existing values for the specified header will be maintained. The new
-     * value(s) will be appended to the existing list. If the header did not
-     * exist previously, it will be added.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new header and/or value.
-     *
-     * @param string          $name  Case-insensitive header field name to add.
-     * @param string|string[] $value Header value(s).
+     * @param \O2System\Psr\Http\Message\UriInterface $uri
      *
      * @return static
-     * @throws \InvalidArgumentException for invalid header names.
-     * @throws \InvalidArgumentException for invalid header values.
      */
-    public function withAddedHeader ( $name, $value )
+    public function setUri( UriInterface $uri )
     {
-        $lines = $this->getHeader( $name );
-        $value = array_map( 'trim', explode( ',', $value ) );
+        $this->uri = $uri;
 
-        $lines = array_merge( $lines, $value );
-
-        return $this->withHeader( $name, implode( ', ', $lines ) );
+        return $this;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Request::getHeader
+     * Request::setHttpVersion
      *
-     * Retrieves a message header value by the given case-insensitive name.
+     * Sets which http version to use (default, lets CURL decide which version to use).
      *
-     * This method returns an array of all the header values of the given
-     * case-insensitive header name.
+     * @param int $httpVersion Supported encodings are "CURL_HTTP_VERSION_NONE", "CURL_HTTP_VERSION_1_0",
+     *                         "CURL_HTTP_VERSION_1_1", and "CURL_HTTP_VERSION_2".
      *
-     * If the header does not appear in the message, this method MUST return an
-     * empty array.
-     *
-     * @param string $name Case-insensitive header field name.
-     *
-     * @return string[] An array of string values as provided for the given
-     *    header. If the header does not appear in the message, this method MUST
-     *    return an empty array.
+     * @return static
      */
-    public function getHeader ( $name )
+    public function setHttpVersion( $httpVersion )
     {
-        $lines = [ ];
-
-        if ( isset( $this->headers[ $name ] ) ) {
-            $lines = array_map( 'trim', explode( ',', $this->headers[ $name ] ) );
+        if ( in_array( $httpVersion, [
+                CURL_HTTP_VERSION_NONE,
+                CURL_HTTP_VERSION_1_0,
+                CURL_HTTP_VERSION_1_1,
+                CURL_HTTP_VERSION_2,
+            ]
+        ) ) {
+            $this->curlOptions[ CURLOPT_HTTP_VERSION ] = $httpVersion;
         }
 
-        return $lines;
+        return $this;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Request::withHeader
+     * Request::setUserAgent
      *
-     * Return an instance with the provided value replacing the specified header.
+     * Sets the contents of the "User-Agent: " header to be used in a HTTP request.
      *
-     * While header names are case-insensitive, the casing of the header will
-     * be preserved by this function, and returned from getHeaders().
+     * @param string $userAgent
      *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new and/or updated header and value.
+     * @return static
+     */
+    public function setUserAgent( $userAgent )
+    {
+        $this->curlOptions[ CURLOPT_USERAGENT ] = trim( $userAgent );
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setReferer
+     *
+     * Sets the contents of the "Referer: " header to be used in a HTTP request.
+     *
+     * @param string $referer
+     *
+     * @return static
+     */
+    public function setReferer( $referer )
+    {
+        $this->curlOptions[ CURLOPT_REFERER ] = trim( $referer );
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setEncoding
+     *
+     * Sets the contents of the "Accept-Encoding: " header. This enables decoding of the response.
+     * Supported encodings are "identity", "deflate", and "gzip".
+     * If an empty string, "", is set, a header containing all supported encoding types is sent.
+     *
+     * @param string $encoding Supported encodings are "identity", "deflate", and "gzip".
+     *
+     * @return static
+     */
+    public function setEncoding( $encoding )
+    {
+        if ( in_array( $encoding, [ 'identity', 'deflate', 'gzip' ] ) ) {
+            $this->curlOptions[ CURLOPT_ENCODING ] = $encoding;
+        } else {
+            $this->curlOptions[ CURLOPT_ENCODING ] = '';
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setTimeout
+     *
+     * Sets the maximum number of seconds to allow cURL functions to execute.
+     *
+     * @param int  $timeout        The number of seconds.
+     * @param bool $isMilliseconds The number units is uses milliseconds format.
+     *
+     * @return static
+     */
+    public function setTimeout( $timeout, $isMilliseconds = false )
+    {
+        if ( $isMilliseconds ) {
+            $this->curlOptions[ CURLOPT_TIMEOUT_MS ] = (int)$timeout;
+        } else {
+            $this->curlOptions[ CURLOPT_TIMEOUT ] = (int)$timeout;
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setConnectionTimeout
+     *
+     * Sets the number of seconds to wait while trying to connect. Use 0 to wait indefinitely.
+     *
+     * @param int  $timeout        The number of seconds.
+     * @param bool $isMilliseconds The number units is uses milliseconds format.
+     *
+     * @return static
+     */
+    public function setConnectionTimeout( $timeout, $isMilliseconds = false )
+    {
+        if ( $isMilliseconds ) {
+            $this->curlOptions[ CURLOPT_CONNECTTIMEOUT_MS ] = (int)$timeout;
+        } else {
+            $this->curlOptions[ CURLOPT_CONNECTTIMEOUT ] = (int)$timeout;
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setMaximumRedirects
+     *
+     * Sets the maximum amount of HTTP redirections to follow. Use this option alongside CURLOPT_FOLLOWLOCATION.
+     *
+     * @param string $maximum The numbers of maximum redirections.
+     *
+     * @return static
+     */
+    public function setMaximumRedirects( $maximum )
+    {
+        $this->curlOptions[ CURLOPT_MAXREDIRS ] = (int)$maximum;
+        $this->curlOptions[ CURLOPT_FOLLOWLOCATION ] = true;
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setSslCaInfo
+     *
+     * Sets the name of a file holding one or more certificates to verify the peer with.
+     * It's also set the curl options:
+     * 1. CURLOPT_SSL_VERIFYPEER value into TRUE.
+     * 2. CURLOPT_SSL_VERIFYHOST value into 2 to check the existence of a common name and also verify that it matches
+     * the hostname provided.
+     * 3. CURLOPT_SSL_VERIFYSTATUS value into TRUE to verify the certificate status.
+     *
+     * @param string $caInfoFilePath Path to ssl certificate file.
+     *
+     * @return static
+     */
+    public function setSslCaInfo( $caInfoFilePath )
+    {
+        if ( is_file( $caInfoFilePath ) ) {
+            $this->setSslVerify( 2, true );
+            $this->curlOptions[ CURLOPT_CAINFO ] = pathinfo( $caInfoFilePath, PATHINFO_BASENAME );
+            $this->curlOptions[ CURLOPT_CAPATH ] = dirname( $caInfoFilePath );
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setSslVerify
+     *
+     * Sets the SSL Verify Peer into TRUE.
+     *
+     * @param int  $verifyHost   0. To not check the names. In production environments the value of this option should
+     *                           be kept at 2 (default value).
+     *                           1. To check the existence of a common name in the SSL peer certificate.
+     *                           2. To check the existence of a common name and also verify that it matches the
+     *                           hostname provided.
+     * @param bool $verifyStatus TRUE to verify the certificate's status.
+     *
+     * @return static
+     */
+    public function setSslVerify( $verifyHost, $verifyStatus = false )
+    {
+        $this->curlOptions[ CURLOPT_SSL_VERIFYPEER ] = true;
+
+        $verifyHost = in_array( $verifyHost, range( 0, 3 ) ) ? $verifyHost : 0;
+        $this->curlOptions[ CURLOPT_SSL_VERIFYHOST ] = (int)$verifyHost;
+        $this->curlOptions[ CURLOPT_SSL_VERIFYSTATUS ] = (bool)$verifyStatus;
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setAuthentication
+     *
+     * Sets the HTTP authentication method(s) to use.
+     *
+     * @param string     $username The HTTP authentication username.
+     * @param string     $password The HTTP authentication password.
+     * @param int|string $method   The HTTP authentication method. The options are:
+     *                             1. CURLAUTH_BASIC
+     *                             2. CURLAUTH_DIGEST
+     *                             3. CURLAUTH_GSSNEGOTIATE
+     *                             4. CURLAUTH_NTLM
+     *                             5. CURLAUTH_ANY (default)
+     *                             6. CURLAUTH_ANYSAFE
+     *
+     * @return static
+     */
+    public function setAuthentication( $username = '', $password = '', $method = CURLAUTH_ANY )
+    {
+        if ( defined( 'CURLOPT_USERNAME' ) ) {
+            $this->curlOptions[ CURLOPT_USERNAME ] = $username;
+        }
+
+        $this->curlOptions[ CURLOPT_USERPWD ] = "$username:$password";
+        $this->curlOptions[ CURLOPT_HTTPAUTH ] = CURLAUTH_ANY;
+
+        if ( in_array( $method, [
+            CURLAUTH_BASIC,
+            CURLAUTH_DIGEST,
+            CURLAUTH_GSSNEGOTIATE,
+            CURLAUTH_NTLM,
+            CURLAUTH_ANY,
+            CURLAUTH_ANYSAFE,
+        ] ) ) {
+            $this->curlOptions[ CURLOPT_HTTPAUTH ] = $method;
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setProxy
+     *
+     * Set the HTTP proxy to tunnel requests through.
+     *
+     * @param string     $address  The HTTP proxy address.
+     * @param int|string $port     The HTTP proxy port.
+     * @param int|string $type     The HTTP proxy type, available options:
+     *                             1. CURLPROXY_HTTP
+     *                             2. CURLPROXY_HTTP_1_0
+     *                             3. CURLPROXY_SOCKS4
+     *                             4. CURLPROXY_SOCKS5
+     *                             5. CURLPROXY_SOCKS4A
+     *                             6. CURLPROXY_SOCKS5_HOSTNAME
+     *
+     * @return static
+     */
+    public function setProxy( $address, $port = 1080, $type = CURLPROXY_HTTP )
+    {
+        $this->curlOptions[ CURLOPT_PROXY ] = $address;
+        $this->curlOptions[ CURLOPT_PROXYPORT ] = $port;
+        $this->curlOptions[ CURLOPT_PROXYTYPE ] = $type;
+        $this->curlOptions[ CURLOPT_HTTPPROXYTUNNEL ] = true;
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setProxyAuthentication
+     *
+     * Sets the username and password to use for the connection to the proxy.
+     *
+     * @param string     $username The HTTP Proxy authentication username.
+     * @param string     $password The HTTP Proxy authentication password.
+     * @param int|string $method   The HTTP Proxy authentication method. The options are:
+     *                             1. CURLAUTH_BASIC
+     *                             2. CURLAUTH_NTLM
+     *
+     * @return static
+     */
+    public function setProxyAuthentication( $username, $password, $method = CURLAUTH_BASIC )
+    {
+        if ( array_key_exists( CURLOPT_HTTPPROXYTUNNEL, $this->curlOptions ) ) {
+            $this->curlOptions[ CURLOPT_PROXYUSERPWD ] = "$username:$password";
+        }
+
+        $this->curlOptions[ CURLOPT_PROXYAUTH ] = CURLAUTH_BASIC;
+
+        if ( in_array( $method, [
+            CURLAUTH_BASIC,
+            CURLAUTH_NTLM,
+        ] ) ) {
+            $this->curlOptions[ CURLOPT_PROXYAUTH ] = $method;
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setHeaders
+     *
+     * Sets curl request with headers.
+     *
+     * @param array $headers
+     *
+     * @return static
+     */
+    public function setHeaders( array $headers )
+    {
+        foreach ( $headers as $name => $value ) {
+            $this->addHeader( $name, $value );
+        }
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::addHeader
+     *
+     * Add curl request header.
      *
      * @param string          $name  Case-insensitive header field name.
      * @param string|string[] $value Header value(s).
      *
      * @return static
-     * @throws \InvalidArgumentException for invalid header names or values.
      */
-    public function withHeader ( $name, $value )
+    public function addHeader( $name, $value )
     {
-        $this->headers[ $name ] = $value;
+        $this->curlHeaders[ $name ] = $value;
 
         return $this;
     }
@@ -305,24 +516,42 @@ class Request implements RequestInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Request::withoutHeader
+     * Request::setCookie
      *
-     * Return an instance without the specified header.
+     * Sets the cookie contents to be used in the HTTP request.
      *
-     * Header resolution MUST be done without case-sensitivity.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that removes
-     * the named header.
-     *
-     * @param string $name Case-insensitive header field name to remove.
+     * @param string $cookieFile The contents of the "Cookie: " header to be used in the HTTP request.
+     *                           Note that multiple cookies are separated with a semicolon followed by a space
+     *                           (e.g., "fruit=apple; colour=red")
      *
      * @return static
      */
-    public function withoutHeader ( $name )
+    public function setCookie( $cookie )
     {
-        if ( isset( $this->headers[ $name ] ) ) {
-            unset( $this->headers[ $name ] );
+        $this->curlOptions[ CURLOPT_COOKIE ] = $cookie;
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::setCookieFile
+     *
+     * Sets the cookie file to be used in the HTTP request.
+     *
+     * @param string      $cookieFile The name of the file containing the cookie data.
+     * @param string|null $cookieJar  The name of a file to save all internal cookies to when the handle is closed,
+     *                                e.g. after a call to curl_close.
+     *
+     * @return static
+     */
+    public function setCookieFile( $cookieFile, $cookieJar = null )
+    {
+        if ( is_file( $cookieFile ) ) {
+            $cookieJar = empty( $cookieJar ) ? $cookieFile : $cookieJar;
+            $this->curlOptions[ CURLOPT_COOKIEFILE ] = $cookieFile;
+            $this->curlOptions[ CURLOPT_COOKIEJAR ] = $cookieJar;
         }
 
         return $this;
@@ -331,250 +560,188 @@ class Request implements RequestInterface
     // ------------------------------------------------------------------------
 
     /**
-     * Request::getBody
+     * Request::get
      *
-     * Gets the body of the message.
+     * Get response use HTTP GET request method.
      *
-     * @return StreamInterface Returns the body as a stream.
+     * @param array $query Additional HTTP GET query.
      */
-    public function getBody ()
+    public function get( array $query = [] )
     {
-        return $this->body;
+        $this->uri = $this->uri->withQuery( $query );
+
+        $this->curlOptions[ CURLOPT_HTTPGET ] = true;
+
+        return $this->getResponse();
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * Request::withBody
+     * Request::getResponse
      *
-     * Return an instance with the specified message body.
+     * Get curl response.
      *
-     * The body MUST be a StreamInterface object.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return a new instance that has the
-     * new body stream.
-     *
-     * @param StreamInterface $body Body.
-     *
-     * @return static
-     * @throws \InvalidArgumentException When the body is not valid.
+     * @return Response
      */
-    public function withBody ( StreamInterface $body )
+    public function getResponse()
     {
-        $request = clone $this;
-        $request->body = $body;
+        $response = ( new Response( $this->curlHandle ) )
+            ->setInfo( curl_getinfo( $this->curlHandle ) )
+            ->setContent( curl_exec( $this->curlHandle ) );
 
-        return $request;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * RequestInterface::getRequestTarget
-     *
-     * Retrieves the message's request target.
-     *
-     * Retrieves the message's request-target either as it will appear (for
-     * clients), as it appeared at request (for servers), or as it was
-     * specified for the instance (see withRequestTarget()).
-     *
-     * In most cases, this will be the origin-form of the composed URI,
-     * unless a value was provided to the concrete implementation (see
-     * withRequestTarget() below).
-     *
-     * If no URI is available, and no request-target has been specifically
-     * provided, this method MUST return the string "/".
-     *
-     * @return string
-     */
-    public function getRequestTarget ()
-    {
-        $requestTarget = '/';
-
-        if ( empty( $this->target ) ) {
-            if ( $this->uri instanceof Uri ) {
-                $requestTarget = $this->uri->getPath();
-
-                if ( null !== ( $query = $this->uri->getQuery() ) ) {
-                    $requestTarget .= '?' . $query;
-                }
-            }
+        if ( $this->curlAutoClose ) {
+            curl_close( $this->curlHandle );
         }
 
-        return $requestTarget;
+        return $response;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * RequestInterface::withRequestTarget
+     * Request::post
      *
-     * Return an instance with the specific request-target.
+     * Get response use HTTP POST request method.
      *
-     * If the request needs a non-origin-form request-target — e.g., for
-     * specifying an absolute-form, authority-form, or asterisk-form —
-     * this method may be used to create an instance with the specified
-     * request-target, verbatim.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * changed request target.
-     *
-     * @see http://tools.ietf.org/html/rfc7230#section-5.3 (for the various
-     *     request-target forms allowed in request messages)
-     *
-     * @param mixed $requestTarget
-     *
-     * @return static
+     * @param array $fields Additional HTTP POST fields.
      */
-    public function withRequestTarget ( $requestTarget )
+    public function post( array $fields = [] )
     {
-        $requestTarget = trim( $requestTarget );
-        $parseTarget = parse_url( $requestTarget );
+        $this->curlOptions[ CURLOPT_POST ] = true;
+        $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query( $fields, null, '&', PHP_QUERY_RFC3986 );
 
-        $uri = $this->uri;
+        return $this->getResponse();
+    }
 
-        if ( isset( $parseTarget[ 'path' ] ) ) {
-            $uri = $this->uri->withPath( $parseTarget[ 'path' ] );
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::delete
+     *
+     * Get response use custom HTTP DELETE request method.
+     *
+     * @param array $fields Additional HTTP POST fields.
+     */
+    public function delete( array $fields = [] )
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'DELETE';
+
+        if ( count( $fields ) ) {
+            $this->curlOptions[ CURLOPT_POST ] = true;
+            $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query( $fields, null, '&', PHP_QUERY_RFC3986 );
         }
 
-        if ( isset( $parseTarget[ 'query' ] ) ) {
-            $uri = $this->uri->withPath( $parseTarget[ 'query' ] );
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::head
+     *
+     * Get response use custom HTTP HEAD request method.
+     */
+    public function head()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'HEAD';
+        $this->curlOptions[ CURLOPT_HTTPGET ] = true;
+        $this->curlOptions[ CURLOPT_HEADER ] = true;
+        $this->curlOptions[ CURLOPT_NOBODY ] = true;
+
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::trace
+     *
+     * Get response use custom HTTP TRACE request method.
+     */
+    public function trace()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'TRACE';
+
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::trace
+     *
+     * Get response use custom HTTP OPTIONS request method.
+     */
+    public function options()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'OPTIONS';
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::patch
+     *
+     * Get response use custom HTTP PATCH request method.
+     */
+    public function patch()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'PATCH';
+
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::connect
+     *
+     * Get response use custom HTTP CONNECT request method.
+     */
+    public function connect()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'CONNECT';
+
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::download
+     *
+     * Get response use custom HTTP DOWNLOAD request method.
+     */
+    public function download()
+    {
+        $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'DOWNLOAD';
+        $this->curlOptions[ CURLOPT_BINARYTRANSFER ] = true;
+        $this->curlOptions[ CURLOPT_RETURNTRANSFER ] = false;
+
+        return $this->getResponse();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Request::getHandle
+     *
+     * Gets curl handle resource.
+     *
+     * @return resource
+     */
+    public function getHandle()
+    {
+        if ( $this->curlAutoClose ) {
+            $this->curlOptions[ CURLOPT_FORBID_REUSE ] = true;
+            $this->curlOptions[ CURLOPT_FRESH_CONNECT ] = true;
         }
 
-        $this->uri = $uri;
+        $this->curlOptions[ CURLOPT_URL ] = $this->uri->__toString();
 
-        return $this;
-    }
+        curl_setopt_array( $this->curlHandle, $this->curlOptions );
 
-    // ------------------------------------------------------------------------
-
-    /**
-     * RequestInterface::getMethod
-     *
-     * Retrieves the HTTP method of the request.
-     *
-     * @return string Returns the request method.
-     */
-    public function getMethod ()
-    {
-        return $this->method;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * RequestInterface::withMethod
-     *
-     * Return an instance with the provided HTTP method.
-     *
-     * While HTTP method names are typically all uppercase characters, HTTP
-     * method names are case-sensitive and thus implementations SHOULD NOT
-     * modify the given string.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * changed request method.
-     *
-     * @param string $method Case-sensitive method.
-     *
-     * @return static
-     * @throws \InvalidArgumentException for invalid HTTP methods.
-     */
-    public function withMethod ( $method )
-    {
-        $method = strtoupper( $method );
-
-        if ( in_array(
-            $method,
-            [
-                'OPTIONS',
-                'GET',
-                'HEAD',
-                'POST',
-                'PUT',
-                'DELETE',
-                'TRACE',
-                'CONNECT',
-            ]
-        ) ) {
-            $this->method = $method;
-
-            return $this;
-        }
-
-        throw new \InvalidArgumentException( 'Invalid HTTP Method' );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * RequestInterface::getUri
-     *
-     * Retrieves the URI instance.
-     *
-     * This method MUST return a UriInterface instance.
-     *
-     * @see http://tools.ietf.org/html/rfc3986#section-4.3
-     * @return Uri Returns a UriInterface instance
-     *     representing the URI of the request.
-     */
-    public function getUri ()
-    {
-        return $this->uri;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * RequestInterface::withUri
-     *
-     * Returns an instance with the provided URI.
-     *
-     * This method MUST update the Host header of the returned request by
-     * default if the URI contains a host component. If the URI does not
-     * contain a host component, any pre-existing Host header MUST be carried
-     * over to the returned request.
-     *
-     * You can opt-in to preserving the original state of the Host header by
-     * setting `$preserveHost` to `true`. When `$preserveHost` is set to
-     * `true`, this method interacts with the Host header in the following ways:
-     *
-     * - If the Host header is missing or empty, and the new URI contains
-     *   a host component, this method MUST update the Host header in the returned
-     *   request.
-     * - If the Host header is missing or empty, and the new URI does not contain a
-     *   host component, this method MUST NOT update the Host header in the returned
-     *   request.
-     * - If a Host header is present and non-empty, this method MUST NOT update
-     *   the Host header in the returned request.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new UriInterface instance.
-     *
-     * @see http://tools.ietf.org/html/rfc3986#section-4.3
-     *
-     * @param UriInterface $uri          New request URI to use.
-     * @param bool         $preserveHost Preserve the original state of the Host header.
-     *
-     * @return static
-     */
-    public function withUri ( UriInterface $uri, $preserveHost = false )
-    {
-        $this->uri = $uri;
-
-        if ( $preserveHost ) {
-            if ( null !== ( $host = $uri->getHost() ) ) {
-                if ( null !== ( $port = $uri->getPort() ) ) {
-                    $host .= ':' . $port;
-                }
-
-                $this->withHeader( 'Host', $host );
-            }
-        }
-
-        return $this;
+        return $this->curlHandle;
     }
 }

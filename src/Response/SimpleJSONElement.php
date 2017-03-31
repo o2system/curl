@@ -10,7 +10,7 @@
  */
 // ------------------------------------------------------------------------
 
-namespace O2System\Libraries\CURL\Datastructures;
+namespace O2System\Curl\Response;
 
 // ------------------------------------------------------------------------
 
@@ -19,23 +19,25 @@ use O2System\Spl\Datastructures\SplArrayObject;
 /**
  * Class SimpleJSONElement
  *
- * @package O2System\Libraries\CURL\Datastructures
+ * @package O2System\Curl\Response
  */
 class SimpleJSONElement extends SplArrayObject
 {
     /**
-     * SimpleJSONElement constructor.
+     * SimpleJSONElement::__construct
      *
      * @param array $elements
      */
-    public function __construct ( array $elements = [ ] )
+    public function __construct( array $elements = [] )
     {
-        if ( count( $elements ) > 0 ) {
-            foreach ( $elements as $offset => $value ) {
-                $this->offsetSet( $offset, $value );
+        foreach ( $elements as $key => $value ) {
+
+            if ( strpos( $key, '_' ) !== false ) {
+                $elements[ camelcase( $key ) ] = $value;
+                unset( $elements[ $key ] );
             }
         }
-    }
 
-    // ------------------------------------------------------------------------
+        parent::__construct( $elements );
+    }
 }
