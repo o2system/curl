@@ -1,0 +1,42 @@
+{
+  "name": "o2system/curl",
+  "description": "PHP Lightweight HTTP Request Client Libraries",
+  "license": "MIT",
+  "type": "php-libraries",
+  "keywords": [
+    "utilities",
+    "php",
+    "framework",
+    "driver",
+    "libraries"
+  ],
+  "authors": [
+    {
+      "name": "Steeven Andrian Salim",
+      "email": "steevenz@steevenz.com",
+      "homepage": "http://www.steevenz.com",
+      "role": "Founder and Lead Project"
+    },
+    {
+      "name": "Teguh Rianto",
+      "email": "teguh.rianto22@gmail.com",
+      "homepage": "http://teguhrianto22.pusku.com",
+      "role": "Template Designer"
+    }
+  ],
+  "support": {
+    "email": "o2system@yahoo.com",
+    "issues": "https://github.com/o2system/curl/issues",
+    "forum": "https://www.facebook.com/groups/498147006994512"
+  },
+  "require": {
+    "php": ">=5.6.0",
+    "o2system/kernel": "dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "O2System\\Curl\\": "src"
+    }
+  },
+  "minimum-stability": "dev"
+}

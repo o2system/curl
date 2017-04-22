@@ -2,9 +2,7 @@ O2System CURL
 =====
 [![Latest Stable Version](https://poser.pugx.org/o2system/o2curl/v/stable)](https://packagist.org/packages/o2system/o2curl) [![Total Downloads](https://poser.pugx.org/o2system/o2curl/downloads)](https://packagist.org/packages/o2system/o2curl) [![Latest Unstable Version](https://poser.pugx.org/o2system/o2curl/v/unstable)](https://packagist.org/packages/o2system/o2curl) [![License](https://poser.pugx.org/o2system/o2curl/license)](https://packagist.org/packages/o2system/o2curl)
 
-O2System CURL is an Open Source PHP Lightweight HTTP Request Client Libraries which is build for working more powerfull with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
-
-Another amazing product from Circle Creative, released under MIT License.
+O2System CURL is an PHP Lightweight HTTP Request Client Libraries which is build for working more powerfull with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
 
 Features
 --------
