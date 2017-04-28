@@ -31,12 +31,12 @@
   },
   "require": {
     "php": ">=5.6.0",
-    "o2system/kernel": "dev-master"
+    "o2system/kernel": "*"
   },
   "autoload": {
     "psr-4": {
       "O2System\\Curl\\": "src"
     }
   },
-  "minimum-stability": "dev-master"
+  "minimum-stability": "dev"
 }
