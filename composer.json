@@ -2,7 +2,7 @@
   "name": "o2system/curl",
   "description": "PHP Lightweight HTTP Request Client Libraries",
   "license": "MIT",
-  "type": "php-libraries",
+  "type": "package",
   "keywords": [
     "utilities",
     "php",
@@ -37,5 +37,6 @@
     "psr-4": {
       "O2System\\Curl\\": "src"
     }
-  }
+  },
+  "minimum-stability": "dev"
 }
