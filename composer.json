@@ -31,7 +31,7 @@
   },
   "require": {
     "php": ">=5.6.0",
-    "o2system/kernel": "@dev"
+    "o2system/kernel": "dev-master"
   },
   "autoload": {
     "psr-4": {
