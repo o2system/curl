@@ -37,6 +37,5 @@
     "psr-4": {
       "O2System\\Curl\\": "src"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }
