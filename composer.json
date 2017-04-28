@@ -38,5 +38,5 @@
       "O2System\\Curl\\": "src"
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev-master"
 }
