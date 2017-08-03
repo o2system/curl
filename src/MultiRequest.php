@@ -51,41 +51,33 @@ class MultiRequest extends AbstractObjectRegistryPattern
      */
     public function getResponse()
     {
-        $curlRequests = $this->getIterator();
-        $curlHandles = [];
+        $responses = [];
+        $handle = curl_multi_init();
 
-        foreach ( $curlRequests as $request ) {
-            curl_multi_add_handle( $this->curlHandle, $curlHandles[] = $request->getHandle() );
-        }
-
-        // Execute all requests
-        $activeCurlHandle = null;
-
-        do {
-            $multiExec = curl_multi_exec( $this->curlHandle, $activeCurlHandle );
-        } while ( $multiExec == CURLM_CALL_MULTI_PERFORM );
-
-        while ( $activeCurlHandle and $multiExec == CURLM_OK ) {
-            if ( curl_multi_select( $this->curlHandle ) != -1 ) {
-                do {
-                    $mrc = curl_multi_exec( $this->curlHandle, $activeCurlHandle );
-                } while ( $mrc == CURLM_CALL_MULTI_PERFORM );
+        foreach ( $this as $request ) {
+            if ( $request instanceof Request ) {
+                curl_multi_add_handle( $handle, $curlHandles[] = $request->getHandle() );
             }
         }
 
-        $responses = [];
+        if ( ! empty( $curlHandles ) ) {
+            // execute the handles
+            $running = null;
+            do {
+                curl_multi_exec( $handle, $running );
+            } while ( $running > 0 );
 
-        foreach ( $curlHandles as $curlHandle ) {
-            $response = curl_multi_getcontent( $curlHandle );
 
-            $responses[] = ( new Response( $curlHandle ) )
-                ->setInfo( curl_getinfo( $curlHandle ) )
-                ->setContent( $response );
+            // get content and remove handles
+            foreach ( $curlHandles as $curlHandle ) {
+                $responses[] = curl_multi_getcontent( $curlHandle );
+                curl_multi_remove_handle( $handle, $curlHandle );
+            }
 
-            curl_multi_remove_handle( $this->handle, $curlHandle );
         }
 
-        curl_multi_close( $this->handle );
+        // all done
+        curl_multi_close( $handle );
 
         return $responses;
     }

@@ -42,14 +42,7 @@ class Request
      * @var Uri
      */
     protected $uri;
-    /**
-     * Request::$curl
-     *
-     * Request Curl handle resource.
-     *
-     * @var resource
-     */
-    protected $curlHandle;
+
     /**
      * Request::$curlOptions
      *
@@ -79,8 +72,6 @@ class Request
         if ( ! function_exists( 'curl_init' ) ) {
             throw new BadPhpExtensionCallException( 'E_CURL_NOT_LOADED' );
         }
-
-        $this->curlHandle = curl_init();
 
         // default, TRUE to return the transfer as a string of the return value of curl_exec() instead of outputting it out directly.
         $this->curlOptions[ CURLOPT_RETURNTRANSFER ] = true;
@@ -582,19 +573,25 @@ class Request
      *
      * Get curl response.
      *
-     * @return Response
+     * @return Response|bool
      */
     public function getResponse()
     {
-        $response = ( new Response( $this->curlHandle ) )
-            ->setInfo( curl_getinfo( $this->curlHandle ) )
-            ->setContent( curl_exec( $this->curlHandle ) );
+        $handle = curl_init( $this->uri->__toString() );
 
-        if ( $this->curlAutoClose ) {
-            curl_close( $this->curlHandle );
+        if( curl_setopt_array( $handle, $this->curlOptions ) ) {
+            $response = ( new Response( $handle ) )
+                ->setInfo( curl_getinfo( $handle ) )
+                ->setContent( curl_exec( $handle ) );
+
+            if ( $this->curlAutoClose ) {
+                curl_close( $handle );
+            }
+
+            return $response;
         }
 
-        return $response;
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -740,8 +737,10 @@ class Request
 
         $this->curlOptions[ CURLOPT_URL ] = $this->uri->__toString();
 
-        curl_setopt_array( $this->curlHandle, $this->curlOptions );
+        $handle = curl_init( $this->uri->__toString() );
 
-        return $this->curlHandle;
+        curl_setopt_array( $handle, $this->curlOptions );
+
+        return $handle;
     }
 }

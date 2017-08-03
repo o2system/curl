@@ -31,8 +31,10 @@ class SimpleQueryElement extends SplArrayObject
     public function __construct( array $elements = [] )
     {
         foreach ( $elements as $key => $value ) {
-            $elements[ camelcase( $key ) ] = $value;
-            unset( $elements[ $key ] );
+            if ( strpos( $key, '_' ) !== false ) {
+                $elements[ camelcase( $key ) ] = $value;
+                unset( $elements[ $key ] );
+            }
         }
 
         parent::__construct( $elements );
