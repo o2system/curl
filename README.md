@@ -16,15 +16,15 @@ Features
 
 Installation
 ------------
-The best way to install O2CURL is to use [Composer](http://getcomposer.org)
+The best way to install O2System Curl is to use [Composer](http://getcomposer.org)
 ```
-composer require o2system/curl
+composer require o2system/curl  --prefer-dist dev-master
 ```
 
 Usage
 -----
 ```php
-use O2System\CURL;
+use O2System\Curl;
 
 $curl = new CURL;
 
@@ -36,7 +36,7 @@ $curl = new CURL;
  * @param array  $params   Request Parameters
  * @param array  $headers  Request Headers
  *
- * @return \O2System\CURL\Factory\Request
+ * @return \O2System\Curl\Factory\Request
  */
 $response = $curl->post(
     "http://domain.com/", // URL
