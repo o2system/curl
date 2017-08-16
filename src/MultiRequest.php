@@ -49,7 +49,7 @@ class MultiRequest extends AbstractObjectRegistryPattern
      *
      * @return array
      */
-    public function getResponse()
+    public function get()
     {
         $responses = [];
         $handle = curl_multi_init();

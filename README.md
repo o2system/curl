@@ -1,81 +1,61 @@
-O2System CURL
-=====
-[![Latest Stable Version](https://poser.pugx.org/o2system/o2curl/v/stable)](https://packagist.org/packages/o2system/o2curl) [![Total Downloads](https://poser.pugx.org/o2system/o2curl/downloads)](https://packagist.org/packages/o2system/o2curl) [![Latest Unstable Version](https://poser.pugx.org/o2system/o2curl/v/unstable)](https://packagist.org/packages/o2system/o2curl) [![License](https://poser.pugx.org/o2system/o2curl/license)](https://packagist.org/packages/o2system/o2curl)
+# O2System Curl
 
-O2System CURL is an PHP Lightweight HTTP Request Client Libraries which is build for working more powerfull with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
+O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
 
 Features
 --------
-- Utility methods to call GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH requests
-- Supports form parameters, file uploads and custom body entities
-- Supports gzip
-- Supports Basic, Digest, Negotiate, NTLM Authentication natively
-- Customizable timeout
-- Customizable default headers for every request (DRY)
-- Automatic JSON parsing into a native object for JSON responses
+- Utility methods to call GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH requests.
+- Supports form parameters, file uploads and custom body entities.
+- Supports gzip compression.
+- Supports Basic, Digest, Negotiate, NTLM Authentication natively.
+- Customizable timeout.
+- Customizable default headers for every request (DRY).
+- Automatic JSON parsing into a native object for JSON responses.
+- Multiple request support.
 
-Installation
-------------
-The best way to install O2System Curl is to use [Composer](http://getcomposer.org)
+### Composer Instalation
+The best way to install O2System Curl is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/curl  --prefer-dist dev-master
+composer require o2system/curl --prefer-dist dev-master
 ```
+> Packagist: [https://packagist.org/packages/o2system/curl](https://packagist.org/packages/o2system/curl)
 
-Usage
------
+### Usage
 ```php
 use O2System\Curl;
+use O2System\Kernel\Http\Message\Uri;
 
-$curl = new CURL;
+// Single Request
+$request = new Curl\Request();
+$request->setUri( new Uri() )->withHost( 'api.o2system.id' )->withPath( 'testing');
 
-/*
- * Post Request
- *
- * @param string $url      Request URL
- * @param string $path     Request URI Path Segment
- * @param array  $params   Request Parameters
- * @param array  $headers  Request Headers
- *
- * @return \O2System\Curl\Factory\Request
- */
-$response = $curl->post(
-    "http://domain.com/", // URL
-    'request/json',  // Path URI Segment
-    // Parameters
-    array(
-        "foo" => "hello", 
-        "bar" => "world"
-    ), 
-    // Headers
-    array(
-        "Accept" => "application/json"
-    )
-);
+// Multi Request
+$multirequest = new Curl\MultiRequest();
+$multirequest->register( $request );
 
-$response->meta;        // HTTP Request Metadata
-$response->header;      // Parsed header
-$response->body;        // Parsed body
-$response->raw_body;    // Unparsed body
+// Get single response
+$response = $request->get();
+
+// Get multiple responses
+$responses = $multirequest->get();
 ```
 
-More details at the [Wiki](http://github.com/circlecreative/o2curl/wiki).
+Documentation is available on this repository [wiki](https://github.com/o2system/curl/wiki) or visit this repository [github page](https://o2system.github.io/curl).
 
-Ideas and Suggestions
----------------------
-Please kindly mail us at [o2system.framework@gmail.com](mailto:o2system.framework@gmail.com).
+### Ideas and Suggestions
+Please kindly mail us at [o2system.framework@gmail.com](mailto:o2system.framework@gmail.com])
 
-Bugs and Issues
----------------
-Please kindly submit your [issues at Github](https://github.com/o2system/curl/issues) so we can track all the issues along development.
+### Bugs and Issues
+Please kindly submit your [issues at Github](http://github.com/o2system/curl/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/curl/pulls) to this repository.
 
-System Requirements
--------------------
-- PHP 5.4+
-- [Composer](http://getcomposer.org)
+### System Requirements
+- PHP 5.6+
+- [Composer](https://getcomposer.org)
+- [O2System Kernel](https://github.com/o2system/kernel)
 
-Credits
--------
-* Founder and Lead Projects: [Steeven Andrian Salim (steevenz.com)](http://steevenz.com)
-* Github Pages Designer and Writer: [Teguh Rianto](http://teguhrianto.tk)
-* Wiki Writer: [Steeven Andrian Salim](http://steevenz.com) (EN), Aradea Hind (ID)
-* Special Thanks To: Yudi Primaputra (CTO - PT. YukBisnis Indonesia)
+### Credits
+|Role|Name|
+|----|----|
+|Founder and Lead Projects|[Steeven Andrian Salim](http://steevenz.com)|
+|Documentation|[Steeven Andrian Salim](http://steevenz.com)
+|Github Pages Designer| [Teguh Rianto](http://teguhrianto.tk)
