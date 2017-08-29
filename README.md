@@ -13,7 +13,7 @@ Features
 - Automatic JSON parsing into a native object for JSON responses.
 - Multiple request support.
 
-### Composer Instalation
+### Composer Installation
 The best way to install O2System Curl is to use [Composer](https://getcomposer.org)
 ```
 composer require o2system/curl --prefer-dist dev-master
