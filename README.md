@@ -16,7 +16,7 @@ Features
 ### Composer Installation
 The best way to install O2System Curl is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/curl --prefer-dist dev-master
+composer require o2system/curl
 ```
 > Packagist: [https://packagist.org/packages/o2system/curl](https://packagist.org/packages/o2system/curl)
 
