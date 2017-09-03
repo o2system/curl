@@ -1,6 +1,5 @@
 # O2System Curl
-
-O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
+O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful within O2System Framework, but also can be used for integrated with others as standalone version with limited features.
 
 Features
 --------
