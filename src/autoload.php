@@ -11,15 +11,13 @@
 // ------------------------------------------------------------------------
 
 /**
- * O2System Psr Autoload
+ * O2System Curl Autoload
  *
  * @param $className
  */
 spl_autoload_register(
     function ( $className ) {
-        if ( $className === 'O2System\Curl' ) {
-            require __DIR__ . DIRECTORY_SEPARATOR . 'Curl.php';
-        } elseif ( strpos( $className, 'O2System\Curl\\' ) === false ) {
+        if ( strpos( $className, 'O2System\Curl\\' ) === false ) {
             return;
         }
 
