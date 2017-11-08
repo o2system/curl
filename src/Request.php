@@ -69,12 +69,8 @@ class Request
      */
     public function __construct()
     {
-        language()
-            ->addFilePath( __DIR__ . DIRECTORY_SEPARATOR )
-            ->loadFile( 'curl' );
-
         if ( ! function_exists( 'curl_init' ) ) {
-            throw new BadPhpExtensionCallException( 'CURL_E_NOT_LOADED' );
+            throw new BadPhpExtensionCallException( 'E_CURL_NOT_LOADED' );
         }
 
         // default, TRUE to return the transfer as a string of the return value of curl_exec() instead of outputting it out directly.
