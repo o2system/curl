@@ -1,5 +1,6 @@
 # O2System Curl
-O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful within O2System Framework, but also can be used for integrated with others as standalone version with limited features.
+
+O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
 
 Features
 --------
@@ -12,10 +13,10 @@ Features
 - Automatic JSON parsing into a native object for JSON responses.
 - Multiple request support.
 
-### Composer Installation
+### Composer Instalation
 The best way to install O2System Curl is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/curl
+composer require o2system/curl --prefer-dist dev-master
 ```
 > Packagist: [https://packagist.org/packages/o2system/curl](https://packagist.org/packages/o2system/curl)
 

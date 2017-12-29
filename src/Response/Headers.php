@@ -17,7 +17,7 @@ namespace O2System\Curl\Response;
 use O2System\Spl\Datastructures\SplArrayObject;
 
 /**
- * Class Info
+ * Class Headers
  *
  * @package O2System\Curl\Response
  */

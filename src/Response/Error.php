@@ -17,14 +17,14 @@ namespace O2System\Curl\Response;
 use O2System\Spl\Datastructures\SplArrayObject;
 
 /**
- * Class Info
+ * Class Error
  *
  * @package O2System\Curl\Response
  */
 class Error extends SplArrayObject
 {
     /**
-     * Info::__construct
+     * Error::__construct
      *
      * @param array $info Array of curl info.
      */
