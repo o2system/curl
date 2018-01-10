@@ -579,6 +579,15 @@ class Request
     {
         $handle = curl_init( $this->uri->__toString() );
 
+        $headers = [];
+        if( count( $this->curlHeaders ) ) {
+            foreach( $this->curlHeaders as $key => $value ) {
+                $headers[] = trim( $key) .': ' . trim( $value );
+            }
+
+            $this->curlOptions[ CURLOPT_HTTPHEADER ] = $headers;
+        }
+
         if( curl_setopt_array( $handle, $this->curlOptions ) ) {
             $response = ( new Response( $handle ) )
                 ->setInfo( curl_getinfo( $handle ) )
