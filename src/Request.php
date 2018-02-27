@@ -58,7 +58,7 @@ class Request
      *
      * @var array
      */
-    protected $curlHeaders;
+    protected $curlHeaders = [];
 
     // ------------------------------------------------------------------------
 
