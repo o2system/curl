@@ -14,14 +14,15 @@ namespace O2System\Curl;
 
 // ------------------------------------------------------------------------
 
-use O2System\Psr\Patterns\AbstractObjectRegistryPattern;
+use O2System\Psr\Patterns\Structural\Provider\AbstractProvider;
+use O2System\Psr\Patterns\Structural\Provider\ValidationInterface;
 
 /**
  * Class MultiRequest
  *
  * @package O2System\Curl
  */
-class MultiRequest extends AbstractObjectRegistryPattern
+class MultiRequest extends AbstractProvider implements ValidationInterface
 {
     /**
      * MultiRequest::$curlHandle
@@ -85,7 +86,7 @@ class MultiRequest extends AbstractObjectRegistryPattern
     // ------------------------------------------------------------------------
 
     /**
-     * MultiRequest::isValid
+     * MultiRequest::validate
      *
      * Checks if the object is a valid instance.
      *
@@ -93,7 +94,7 @@ class MultiRequest extends AbstractObjectRegistryPattern
      *
      * @return bool Returns TRUE on valid or FALSE on failure.
      */
-    protected function isValid( $object )
+    public function validate( $object )
     {
         if ( $object instanceof Request ) {
             return true;
