@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Curl\Response;
@@ -28,15 +29,15 @@ class SimpleQueryElement extends SplArrayObject
      *
      * @param array $elements
      */
-    public function __construct( array $elements = [] )
+    public function __construct(array $elements = [])
     {
-        foreach ( $elements as $key => $value ) {
-            if ( strpos( $key, '_' ) !== false ) {
-                $elements[ camelcase( $key ) ] = $value;
-                unset( $elements[ $key ] );
+        foreach ($elements as $key => $value) {
+            if (strpos($key, '_') !== false) {
+                $elements[ camelcase($key) ] = $value;
+                unset($elements[ $key ]);
             }
         }
 
-        parent::__construct( $elements );
+        parent::__construct($elements);
     }
 }

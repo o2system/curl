@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Curl;
@@ -55,30 +56,30 @@ class MultiRequest extends AbstractProvider implements ValidationInterface
         $responses = [];
         $handle = curl_multi_init();
 
-        foreach ( $this as $request ) {
-            if ( $request instanceof Request ) {
-                curl_multi_add_handle( $handle, $curlHandles[] = $request->getHandle() );
+        foreach ($this as $request) {
+            if ($request instanceof Request) {
+                curl_multi_add_handle($handle, $curlHandles[] = $request->getHandle());
             }
         }
 
-        if ( ! empty( $curlHandles ) ) {
+        if ( ! empty($curlHandles)) {
             // execute the handles
             $running = null;
             do {
-                curl_multi_exec( $handle, $running );
-            } while ( $running > 0 );
+                curl_multi_exec($handle, $running);
+            } while ($running > 0);
 
 
             // get content and remove handles
-            foreach ( $curlHandles as $curlHandle ) {
-                $responses[] = curl_multi_getcontent( $curlHandle );
-                curl_multi_remove_handle( $handle, $curlHandle );
+            foreach ($curlHandles as $curlHandle) {
+                $responses[] = curl_multi_getcontent($curlHandle);
+                curl_multi_remove_handle($handle, $curlHandle);
             }
 
         }
 
         // all done
-        curl_multi_close( $handle );
+        curl_multi_close($handle);
 
         return $responses;
     }
@@ -94,9 +95,9 @@ class MultiRequest extends AbstractProvider implements ValidationInterface
      *
      * @return bool Returns TRUE on valid or FALSE on failure.
      */
-    public function validate( $object )
+    public function validate($object)
     {
-        if ( $object instanceof Request ) {
+        if ($object instanceof Request) {
             return true;
         }
 

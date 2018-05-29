@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Curl\Response;
@@ -28,16 +29,16 @@ class Info extends SplArrayObject
      *
      * @param array $info Array of curl info.
      */
-    public function __construct( array $info )
+    public function __construct(array $info)
     {
-        foreach ( $info as $key => $value ) {
+        foreach ($info as $key => $value) {
 
-            if ( strpos( $key, '_' ) !== false ) {
-                $info[ camelcase( $key ) ] = $value;
-                unset( $info[ $key ] );
+            if (strpos($key, '_') !== false) {
+                $info[ camelcase($key) ] = $value;
+                unset($info[ $key ]);
             }
         }
 
-        parent::__construct( $info );
+        parent::__construct($info);
     }
 }

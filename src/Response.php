@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Curl;
@@ -81,13 +82,13 @@ class Response
      *
      * @param resource $curlHandle Curl handle resource.
      */
-    public function __construct( $curlHandle )
+    public function __construct($curlHandle)
     {
-        if ( ( $errorNumber = curl_errno( $curlHandle ) ) != 0 ) {
-            $this->error = new Error( [
-                'code'    => curl_errno( $curlHandle ),
-                'message' => curl_error( $curlHandle ),
-            ] );
+        if (($errorNumber = curl_errno($curlHandle)) != 0) {
+            $this->error = new Error([
+                'code'    => curl_errno($curlHandle),
+                'message' => curl_error($curlHandle),
+            ]);
         }
     }
 
@@ -102,11 +103,11 @@ class Response
      *
      * @return static
      */
-    public function setContent( $content )
+    public function setContent($content)
     {
         $this->string = $content;
-        $this->fetchHeader( $content );
-        $this->fetchBody( $content );
+        $this->fetchHeader($content);
+        $this->fetchBody($content);
 
         return $this;
     }
@@ -120,30 +121,30 @@ class Response
      *
      * @param string $response
      */
-    protected function fetchHeader( $response )
+    protected function fetchHeader($response)
     {
         $headers = [];
         $headerSize = 0;
-        $headerParts = explode( PHP_EOL, $response );
+        $headerParts = explode(PHP_EOL, $response);
 
-        foreach ( $headerParts as $headerString ) {
+        foreach ($headerParts as $headerString) {
 
-            $headerSize += strlen( $headerString );
+            $headerSize += strlen($headerString);
 
-            $headerString = trim( $headerString );
-            if ( empty( $headerString ) ) {
+            $headerString = trim($headerString);
+            if (empty($headerString)) {
                 break;
             }
 
-            if ( strpos( $headerString, ':' ) !== false ) {
-                $headerSize += strlen( PHP_EOL );
-                $headerString = str_replace( '"', '', $headerString );
-                $headerStringParts = explode( ':', $headerString );
-                $headerStringParts = array_map( 'trim', $headerStringParts );
+            if (strpos($headerString, ':') !== false) {
+                $headerSize += strlen(PHP_EOL);
+                $headerString = str_replace('"', '', $headerString);
+                $headerStringParts = explode(':', $headerString);
+                $headerStringParts = array_map('trim', $headerStringParts);
 
                 $headers[ $headerStringParts[ 0 ] ] = $headerStringParts[ 1 ];
-            } elseif ( preg_match( "/(HTTP\/[0-9].[0-9])\s([0-9]+)\s([a-zA-Z]+)/", $headerString, $matches ) ) {
-                $headerSize += strlen( PHP_EOL );
+            } elseif (preg_match("/(HTTP\/[0-9].[0-9])\s([0-9]+)\s([a-zA-Z]+)/", $headerString, $matches)) {
+                $headerSize += strlen(PHP_EOL);
 
                 $this->info->httpVersion = $matches[ 1 ];
                 $this->info->httpCode = $matches[ 2 ];
@@ -151,11 +152,11 @@ class Response
             }
         }
 
-        $this->headers = new Headers( $headers );
+        $this->headers = new Headers($headers);
 
         // Update info
-        if ( $this->headers->offsetExists( 'contentType' ) ) {
-            $this->info->contentType = $this->headers->offsetGet( 'contentType' );
+        if ($this->headers->offsetExists('contentType')) {
+            $this->info->contentType = $this->headers->offsetGet('contentType');
         }
 
         $this->info->headerSize = $headerSize;
@@ -170,29 +171,29 @@ class Response
      *
      * @param string $response
      */
-    protected function fetchBody( $response )
+    protected function fetchBody($response)
     {
-        $body = substr( $response, $this->info->headerSize );
-        $body = trim( $body );
-        $jsonBody = json_decode( $body, true );
+        $body = substr($response, $this->info->headerSize);
+        $body = trim($body);
+        $jsonBody = json_decode($body, true);
 
-        if ( is_array( $jsonBody ) AND json_last_error() === JSON_ERROR_NONE ) {
-            $this->body = new SimpleJSONElement( $jsonBody );
-        } elseif ( strpos( $body, '?xml' ) !== false ) {
-            $this->body = new SimpleXMLElement( $body );
-        } elseif ( strpos( $body, '!DOCTYPE' ) !== false or strpos( $body, '!doctype' ) !== false ) {
+        if (is_array($jsonBody) AND json_last_error() === JSON_ERROR_NONE) {
+            $this->body = new SimpleJSONElement($jsonBody);
+        } elseif (strpos($body, '?xml') !== false) {
+            $this->body = new SimpleXMLElement($body);
+        } elseif (strpos($body, '!DOCTYPE') !== false or strpos($body, '!doctype') !== false) {
             $DomDocument = new \DOMDocument();
-            $DomDocument->loadHTML( $body );
+            $DomDocument->loadHTML($body);
             $this->body = $DomDocument;
-        } elseif ( false !== ( $serializeArray = unserialize( $body ) ) ) {
-            $this->body = new SimpleSerializeElement( $serializeArray );
+        } elseif (false !== ($serializeArray = unserialize($body))) {
+            $this->body = new SimpleSerializeElement($serializeArray);
         } else {
-            parse_str( $body, $queryString );
+            parse_str($body, $queryString);
 
-            if ( isset( $queryString[ 0 ] ) ) {
+            if (isset($queryString[ 0 ])) {
                 $this->body = $body;
             } else {
-                $this->body = new SimpleQueryElement( $queryString );
+                $this->body = new SimpleQueryElement($queryString);
             }
         }
     }
@@ -222,9 +223,9 @@ class Response
      *
      * @return static
      */
-    public function setInfo( array $info )
+    public function setInfo(array $info)
     {
-        $this->info = new Info( $info );
+        $this->info = new Info($info);
 
         return $this;
     }
@@ -268,7 +269,7 @@ class Response
      */
     public function getError()
     {
-        if ( $this->error instanceof Error ) {
+        if ($this->error instanceof Error) {
             return $this->error;
         }
 

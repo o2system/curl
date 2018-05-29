@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Curl;
@@ -69,8 +70,8 @@ class Request
      */
     public function __construct()
     {
-        if ( ! function_exists( 'curl_init' ) ) {
-            throw new BadPhpExtensionCallException( 'E_CURL_NOT_LOADED' );
+        if ( ! function_exists('curl_init')) {
+            throw new BadPhpExtensionCallException('E_CURL_NOT_LOADED');
         }
 
         // default, TRUE to return the transfer as a string of the return value of curl_exec() instead of outputting it out directly.
@@ -109,10 +110,10 @@ class Request
      *
      * @param array $options
      */
-    public function setOptions( array $options )
+    public function setOptions(array $options)
     {
-        foreach ( $options as $option => $value ) {
-            $this->setOption( $option, $value );
+        foreach ($options as $option => $value) {
+            $this->setOption($option, $value);
         }
 
         return $this;
@@ -132,7 +133,7 @@ class Request
      *
      * @return $this
      */
-    public function setOption( $option, $value )
+    public function setOption($option, $value)
     {
         $this->curlOptions[ $option ] = $value;
 
@@ -148,7 +149,7 @@ class Request
      *
      * @return static
      */
-    public function setUri( UriInterface $uri )
+    public function setUri(UriInterface $uri)
     {
         $this->uri = $uri;
 
@@ -167,15 +168,15 @@ class Request
      *
      * @return static
      */
-    public function setHttpVersion( $httpVersion )
+    public function setHttpVersion($httpVersion)
     {
-        if ( in_array( $httpVersion, [
+        if (in_array($httpVersion, [
                 CURL_HTTP_VERSION_NONE,
                 CURL_HTTP_VERSION_1_0,
                 CURL_HTTP_VERSION_1_1,
                 CURL_HTTP_VERSION_2,
             ]
-        ) ) {
+        )) {
             $this->curlOptions[ CURLOPT_HTTP_VERSION ] = $httpVersion;
         }
 
@@ -193,9 +194,9 @@ class Request
      *
      * @return static
      */
-    public function setUserAgent( $userAgent )
+    public function setUserAgent($userAgent)
     {
-        $this->curlOptions[ CURLOPT_USERAGENT ] = trim( $userAgent );
+        $this->curlOptions[ CURLOPT_USERAGENT ] = trim($userAgent);
 
         return $this;
     }
@@ -211,9 +212,9 @@ class Request
      *
      * @return static
      */
-    public function setReferer( $referer )
+    public function setReferer($referer)
     {
-        $this->curlOptions[ CURLOPT_REFERER ] = trim( $referer );
+        $this->curlOptions[ CURLOPT_REFERER ] = trim($referer);
 
         return $this;
     }
@@ -231,9 +232,9 @@ class Request
      *
      * @return static
      */
-    public function setEncoding( $encoding )
+    public function setEncoding($encoding)
     {
-        if ( in_array( $encoding, [ 'identity', 'deflate', 'gzip' ] ) ) {
+        if (in_array($encoding, ['identity', 'deflate', 'gzip'])) {
             $this->curlOptions[ CURLOPT_ENCODING ] = $encoding;
         } else {
             $this->curlOptions[ CURLOPT_ENCODING ] = '';
@@ -254,9 +255,9 @@ class Request
      *
      * @return static
      */
-    public function setTimeout( $timeout, $isMilliseconds = false )
+    public function setTimeout($timeout, $isMilliseconds = false)
     {
-        if ( $isMilliseconds ) {
+        if ($isMilliseconds) {
             $this->curlOptions[ CURLOPT_TIMEOUT_MS ] = (int)$timeout;
         } else {
             $this->curlOptions[ CURLOPT_TIMEOUT ] = (int)$timeout;
@@ -277,9 +278,9 @@ class Request
      *
      * @return static
      */
-    public function setConnectionTimeout( $timeout, $isMilliseconds = false )
+    public function setConnectionTimeout($timeout, $isMilliseconds = false)
     {
-        if ( $isMilliseconds ) {
+        if ($isMilliseconds) {
             $this->curlOptions[ CURLOPT_CONNECTTIMEOUT_MS ] = (int)$timeout;
         } else {
             $this->curlOptions[ CURLOPT_CONNECTTIMEOUT ] = (int)$timeout;
@@ -299,7 +300,7 @@ class Request
      *
      * @return static
      */
-    public function setMaximumRedirects( $maximum )
+    public function setMaximumRedirects($maximum)
     {
         $this->curlOptions[ CURLOPT_MAXREDIRS ] = (int)$maximum;
         $this->curlOptions[ CURLOPT_FOLLOWLOCATION ] = true;
@@ -323,12 +324,12 @@ class Request
      *
      * @return static
      */
-    public function setSslCaInfo( $caInfoFilePath )
+    public function setSslCaInfo($caInfoFilePath)
     {
-        if ( is_file( $caInfoFilePath ) ) {
-            $this->setSslVerify( 2, true );
-            $this->curlOptions[ CURLOPT_CAINFO ] = pathinfo( $caInfoFilePath, PATHINFO_BASENAME );
-            $this->curlOptions[ CURLOPT_CAPATH ] = dirname( $caInfoFilePath );
+        if (is_file($caInfoFilePath)) {
+            $this->setSslVerify(2, true);
+            $this->curlOptions[ CURLOPT_CAINFO ] = pathinfo($caInfoFilePath, PATHINFO_BASENAME);
+            $this->curlOptions[ CURLOPT_CAPATH ] = dirname($caInfoFilePath);
         }
 
         return $this;
@@ -350,11 +351,11 @@ class Request
      *
      * @return static
      */
-    public function setSslVerify( $verifyHost, $verifyStatus = false )
+    public function setSslVerify($verifyHost, $verifyStatus = false)
     {
         $this->curlOptions[ CURLOPT_SSL_VERIFYPEER ] = true;
 
-        $verifyHost = in_array( $verifyHost, range( 0, 3 ) ) ? $verifyHost : 0;
+        $verifyHost = in_array($verifyHost, range(0, 3)) ? $verifyHost : 0;
         $this->curlOptions[ CURLOPT_SSL_VERIFYHOST ] = (int)$verifyHost;
         $this->curlOptions[ CURLOPT_SSL_VERIFYSTATUS ] = (bool)$verifyStatus;
 
@@ -380,23 +381,23 @@ class Request
      *
      * @return static
      */
-    public function setAuthentication( $username = '', $password = '', $method = CURLAUTH_ANY )
+    public function setAuthentication($username = '', $password = '', $method = CURLAUTH_ANY)
     {
-        if ( defined( 'CURLOPT_USERNAME' ) ) {
+        if (defined('CURLOPT_USERNAME')) {
             $this->curlOptions[ CURLOPT_USERNAME ] = $username;
         }
 
         $this->curlOptions[ CURLOPT_USERPWD ] = "$username:$password";
         $this->curlOptions[ CURLOPT_HTTPAUTH ] = CURLAUTH_ANY;
 
-        if ( in_array( $method, [
+        if (in_array($method, [
             CURLAUTH_BASIC,
             CURLAUTH_DIGEST,
             CURLAUTH_GSSNEGOTIATE,
             CURLAUTH_NTLM,
             CURLAUTH_ANY,
             CURLAUTH_ANYSAFE,
-        ] ) ) {
+        ])) {
             $this->curlOptions[ CURLOPT_HTTPAUTH ] = $method;
         }
 
@@ -422,7 +423,7 @@ class Request
      *
      * @return static
      */
-    public function setProxy( $address, $port = 1080, $type = CURLPROXY_HTTP )
+    public function setProxy($address, $port = 1080, $type = CURLPROXY_HTTP)
     {
         $this->curlOptions[ CURLOPT_PROXY ] = $address;
         $this->curlOptions[ CURLOPT_PROXYPORT ] = $port;
@@ -447,18 +448,18 @@ class Request
      *
      * @return static
      */
-    public function setProxyAuthentication( $username, $password, $method = CURLAUTH_BASIC )
+    public function setProxyAuthentication($username, $password, $method = CURLAUTH_BASIC)
     {
-        if ( array_key_exists( CURLOPT_HTTPPROXYTUNNEL, $this->curlOptions ) ) {
+        if (array_key_exists(CURLOPT_HTTPPROXYTUNNEL, $this->curlOptions)) {
             $this->curlOptions[ CURLOPT_PROXYUSERPWD ] = "$username:$password";
         }
 
         $this->curlOptions[ CURLOPT_PROXYAUTH ] = CURLAUTH_BASIC;
 
-        if ( in_array( $method, [
+        if (in_array($method, [
             CURLAUTH_BASIC,
             CURLAUTH_NTLM,
-        ] ) ) {
+        ])) {
             $this->curlOptions[ CURLOPT_PROXYAUTH ] = $method;
         }
 
@@ -476,10 +477,10 @@ class Request
      *
      * @return static
      */
-    public function setHeaders( array $headers )
+    public function setHeaders(array $headers)
     {
-        foreach ( $headers as $name => $value ) {
-            $this->addHeader( $name, $value );
+        foreach ($headers as $name => $value) {
+            $this->addHeader($name, $value);
         }
 
         return $this;
@@ -497,7 +498,7 @@ class Request
      *
      * @return static
      */
-    public function addHeader( $name, $value )
+    public function addHeader($name, $value)
     {
         $this->curlHeaders[ $name ] = $value;
 
@@ -517,7 +518,7 @@ class Request
      *
      * @return static
      */
-    public function setCookie( $cookie )
+    public function setCookie($cookie)
     {
         $this->curlOptions[ CURLOPT_COOKIE ] = $cookie;
 
@@ -537,10 +538,10 @@ class Request
      *
      * @return static
      */
-    public function setCookieFile( $cookieFile, $cookieJar = null )
+    public function setCookieFile($cookieFile, $cookieJar = null)
     {
-        if ( is_file( $cookieFile ) ) {
-            $cookieJar = empty( $cookieJar ) ? $cookieFile : $cookieJar;
+        if (is_file($cookieFile)) {
+            $cookieJar = empty($cookieJar) ? $cookieFile : $cookieJar;
             $this->curlOptions[ CURLOPT_COOKIEFILE ] = $cookieFile;
             $this->curlOptions[ CURLOPT_COOKIEJAR ] = $cookieJar;
         }
@@ -557,9 +558,9 @@ class Request
      *
      * @param array $query Additional HTTP GET query.
      */
-    public function get( array $query = [] )
+    public function get(array $query = [])
     {
-        $this->uri = $this->uri->withQuery( $query );
+        $this->uri = $this->uri->withQuery($query);
 
         $this->curlOptions[ CURLOPT_HTTPGET ] = true;
 
@@ -577,24 +578,24 @@ class Request
      */
     public function getResponse()
     {
-        $handle = curl_init( $this->uri->__toString() );
+        $handle = curl_init($this->uri->__toString());
 
         $headers = [];
-        if( count( $this->curlHeaders ) ) {
-            foreach( $this->curlHeaders as $key => $value ) {
-                $headers[] = trim( $key) .': ' . trim( $value );
+        if (count($this->curlHeaders)) {
+            foreach ($this->curlHeaders as $key => $value) {
+                $headers[] = trim($key) . ': ' . trim($value);
             }
 
             $this->curlOptions[ CURLOPT_HTTPHEADER ] = $headers;
         }
 
-        if( curl_setopt_array( $handle, $this->curlOptions ) ) {
-            $response = ( new Response( $handle ) )
-                ->setInfo( curl_getinfo( $handle ) )
-                ->setContent( curl_exec( $handle ) );
+        if (curl_setopt_array($handle, $this->curlOptions)) {
+            $response = (new Response($handle))
+                ->setInfo(curl_getinfo($handle))
+                ->setContent(curl_exec($handle));
 
-            if ( $this->curlAutoClose ) {
-                curl_close( $handle );
+            if ($this->curlAutoClose) {
+                curl_close($handle);
             }
 
             return $response;
@@ -612,10 +613,10 @@ class Request
      *
      * @param array $fields Additional HTTP POST fields.
      */
-    public function post( array $fields = [] )
+    public function post(array $fields = [])
     {
         $this->curlOptions[ CURLOPT_POST ] = true;
-        $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query( $fields, null, '&', PHP_QUERY_RFC3986 );
+        $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query($fields, null, '&', PHP_QUERY_RFC3986);
 
         return $this->getResponse();
     }
@@ -629,13 +630,13 @@ class Request
      *
      * @param array $fields Additional HTTP POST fields.
      */
-    public function delete( array $fields = [] )
+    public function delete(array $fields = [])
     {
         $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'DELETE';
 
-        if ( count( $fields ) ) {
+        if (count($fields)) {
             $this->curlOptions[ CURLOPT_POST ] = true;
-            $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query( $fields, null, '&', PHP_QUERY_RFC3986 );
+            $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query($fields, null, '&', PHP_QUERY_RFC3986);
         }
 
         return $this->getResponse();
@@ -739,16 +740,16 @@ class Request
      */
     public function getHandle()
     {
-        if ( $this->curlAutoClose ) {
+        if ($this->curlAutoClose) {
             $this->curlOptions[ CURLOPT_FORBID_REUSE ] = true;
             $this->curlOptions[ CURLOPT_FRESH_CONNECT ] = true;
         }
 
         $this->curlOptions[ CURLOPT_URL ] = $this->uri->__toString();
 
-        $handle = curl_init( $this->uri->__toString() );
+        $handle = curl_init($this->uri->__toString());
 
-        curl_setopt_array( $handle, $this->curlOptions );
+        curl_setopt_array($handle, $this->curlOptions);
 
         return $handle;
     }
