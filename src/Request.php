@@ -578,7 +578,11 @@ class Request
      */
     public function getResponse()
     {
-        $handle = curl_init($this->uri->__toString());
+        if(array_key_exists(CURLOPT_URL, $this->curlOptions)) {
+            $handle = curl_init();
+        } else {
+            $handle = curl_init($this->uri->__toString());
+        }
 
         $headers = [];
         if (count($this->curlHeaders)) {
