@@ -87,7 +87,7 @@ class Request
         $this->curlOptions[ CURLOPT_HTTP_VERSION ] = CURL_HTTP_VERSION_NONE;
 
         // default, http user agent using o2system curl.
-        $this->curlOptions[ CURLOPT_USERAGENT ] = 'Curl/1.0 (O2System PHP Framework 5.0.0)';
+        $this->curlOptions[ CURLOPT_USERAGENT ] = 'Curl/1.0 (O2System)';
 
         // default, TRUE to automatically set the Referer: field in requests where it follows a Location: redirect.
         $this->curlOptions[ CURLOPT_AUTOREFERER ] = true;
