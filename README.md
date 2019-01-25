@@ -1,3 +1,17 @@
+<div align="center" markdown="1">
+
+[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+</div>
+
+<div align="center" markdown="1">
+
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/curl/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/curl/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/o2system/curl/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/curl/build-status/master)
+[![Latest Stable Version](https://poser.pugx.org/o2system/curl/v/stable)](https://packagist.org/packages/o2system/curl)
+[![Total Downloads](https://poser.pugx.org/o2system/curl/downloads)](https://packagist.org/packages/o2system/curl)
+
+</div>
+
 # O2System Curl
 
 O2System Curl is a PHP Lightweight HTTP Request Client Library which is build for working more powerful with O2System Framework, but also can be used for integrated with others as standalone version with limited features.
