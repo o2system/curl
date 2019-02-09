@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -109,6 +109,8 @@ class Request
      * @see http://php.net/manual/en/function.curl-setopt.php
      *
      * @param array $options
+     *
+     * @return static
      */
     public function setOptions(array $options)
     {
@@ -131,7 +133,7 @@ class Request
      * @param int   $option The curl option number.
      * @param mixed $value  The value of curl option.
      *
-     * @return $this
+     * @return static
      */
     public function setOption($option, $value)
     {
@@ -557,6 +559,8 @@ class Request
      * Get response use HTTP GET request method.
      *
      * @param array $query Additional HTTP GET query.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function get(array $query = [])
     {
@@ -578,7 +582,7 @@ class Request
      */
     public function getResponse()
     {
-        if(array_key_exists(CURLOPT_URL, $this->curlOptions)) {
+        if (array_key_exists(CURLOPT_URL, $this->curlOptions)) {
             $handle = curl_init();
         } else {
             $handle = curl_init($this->uri->__toString());
@@ -616,6 +620,8 @@ class Request
      * Get response use HTTP POST request method.
      *
      * @param array $fields Additional HTTP POST fields.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function post(array $fields = [])
     {
@@ -633,6 +639,8 @@ class Request
      * Get response use custom HTTP DELETE request method.
      *
      * @param array $fields Additional HTTP POST fields.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function delete(array $fields = [])
     {
@@ -652,6 +660,8 @@ class Request
      * Request::head
      *
      * Get response use custom HTTP HEAD request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function head()
     {
@@ -669,6 +679,8 @@ class Request
      * Request::trace
      *
      * Get response use custom HTTP TRACE request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function trace()
     {
@@ -683,10 +695,14 @@ class Request
      * Request::trace
      *
      * Get response use custom HTTP OPTIONS request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function options()
     {
         $this->curlOptions[ CURLOPT_CUSTOMREQUEST ] = 'OPTIONS';
+
+        return $this->getResponse();
     }
 
     // ------------------------------------------------------------------------
@@ -695,6 +711,8 @@ class Request
      * Request::patch
      *
      * Get response use custom HTTP PATCH request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function patch()
     {
@@ -709,6 +727,8 @@ class Request
      * Request::connect
      *
      * Get response use custom HTTP CONNECT request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function connect()
     {
@@ -723,6 +743,8 @@ class Request
      * Request::download
      *
      * Get response use custom HTTP DOWNLOAD request method.
+     *
+     * @return bool|\O2System\Curl\Response
      */
     public function download()
     {
