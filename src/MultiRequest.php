@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@ namespace O2System\Curl;
 
 // ------------------------------------------------------------------------
 
-use O2System\Psr\Patterns\Structural\Provider\AbstractProvider;
-use O2System\Psr\Patterns\Structural\Provider\ValidationInterface;
+use O2System\Spl\Patterns\Structural\Provider\AbstractProvider;
+use O2System\Spl\Patterns\Structural\Provider\ValidationInterface;
 
 /**
  * Class MultiRequest
@@ -43,6 +43,8 @@ class MultiRequest extends AbstractProvider implements ValidationInterface
     {
         $this->curlHandle = curl_multi_init();
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * MultiRequest::getResponse
