@@ -31,6 +31,13 @@ class SimpleJSONElement extends SplArrayObject
      */
     public function __construct(array $elements = [])
     {
+        foreach ($elements as $key => $value) {
+            if (strpos($key, '_') !== false) {
+                $elements[ camelcase($key) ] = $value;
+                unset($elements[ $key ]);
+            }
+        }
+
         parent::__construct($elements);
     }
 }
