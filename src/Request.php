@@ -623,10 +623,17 @@ class Request
      *
      * @return bool|\O2System\Curl\Response
      */
-    public function post(array $fields = [])
+    public function post(array $fields = [], $json = false)
     {
         $this->curlOptions[ CURLOPT_POST ] = true;
-        $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query($fields, null, '&', PHP_QUERY_RFC3986);
+
+        if ($json === true) {
+            $this->curlOptions[ CURLOPT_POSTFIELDS ] = json_encode($fields);
+            $this->addHeader('Content-Type', 'application/json');
+            $this->addHeader('Content-Length', strlen($this->curlOptions[ CURLOPT_POSTFIELDS ]));
+        } else {
+            $this->curlOptions[ CURLOPT_POSTFIELDS ] = http_build_query($fields, null, '&', PHP_QUERY_RFC3986);
+        }
 
         return $this->getResponse();
     }
