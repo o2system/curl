@@ -1,4 +1,4 @@
-[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+![alt text](https://repository-images.githubusercontent.com/68189900/0618cc80-5ca1-11ea-832d-7d26204da454 "O2System Curl Atom")
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/curl/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/curl/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/o2system/curl/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/curl/build-status/master)
@@ -50,7 +50,7 @@ $responses = $multirequest->get();
 Documentation is available on this repository [wiki](https://github.com/o2system/curl/wiki) or visit this repository [github page](https://o2system.github.io/curl).
 
 ### Ideas and Suggestions
-Please kindly mail us at [contact@o2system.id](mailto:contact@o2system.id])
+Please kindly mail us at [hello@o2system.id](mailto:hello@o2system.id])
 
 ### Bugs and Issues
 Please kindly submit your [issues at Github](http://github.com/o2system/curl/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/curl/pulls) to this repository.
